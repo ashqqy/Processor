@@ -1,0 +1,7 @@
+all: built run
+
+built:
+	g++ -I./Interpreter/include -I./Stack/include ./Interpreter/src/*.cpp ./Stack/src/Stack.cpp ./Stack/src/MyAllocation.cpp -o ./Interpreter/main
+
+run:
+	./Interpreter/main
