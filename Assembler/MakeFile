@@ -1,0 +1,7 @@
+all: built run
+
+built:
+	g++ -I./Assembler/include ./Assembler/src/*.cpp -o ./Assembler/main
+
+run:
+	./Assembler/main
