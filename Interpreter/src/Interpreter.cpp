@@ -26,53 +26,36 @@ void RunInterpreter ()
         
         if (strcmp (cmd, "out") == 0)
             {
-            // FIXME не использовать переменные, переписать Pop
-            int arg = 0;
-            StackPop (&stack, &arg);
-            printf ("%d\n", arg);
+            printf ("%d\n", StackPop (&stack));
             continue;
             }
 
         if (strcmp (cmd, "add") == 0)
             {
-            // FIXME не использовать переменные, переписать Pop
-            int a = 0;
-            int b = 0;
-            StackPop (&stack, &a);
-            StackPop (&stack, &b);
-            StackPush (&stack, a + b);
+            StackPush (&stack, StackPop (&stack) + StackPop (&stack));
             continue;
             }
         
         if (strcmp (cmd, "sub") == 0)
             {
-            int a = 0;
-            int b = 0;
-            StackPop (&stack, &a);
-            StackPop (&stack, &b);
+            int a = StackPop (&stack);
+            int b = StackPop (&stack);
             StackPush (&stack, b - a);
             continue;
             }
 
         if (strcmp (cmd, "mul") == 0)
             {
-            // FIXME не использовать переменные, переписать Pop
-            int a = 0;
-            int b = 0;
-            StackPop (&stack, &a);
-            StackPop (&stack, &b);
-            StackPush (&stack, a * b);
+            StackPush (&stack, StackPop (&stack) * StackPop (&stack));
             continue;
             }
 
         
         if (strcmp (cmd, "div") == 0)
             {
-            int a = 0;
-            int b = 0;
-            StackPop (&stack, &a);
-            StackPop (&stack, &b);
-            assert (b != 0);
+            int a = StackPop (&stack);
+            int b = StackPop (&stack);
+            assert (a != 0);
             StackPush (&stack, b / a);
             continue;
             }
