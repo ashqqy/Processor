@@ -5,17 +5,28 @@
 
 //-----------------------------------------------------------
 
-int main ()
+int main () // TODO args parsing
     {
-    FILE* code_in = fopen ("./Code.asm", "rb");
-    assert (code_in != NULL);
-    FILE* code_out = fopen ("./MachineCode.asm", "wb");
-    assert (code_out != NULL);
+    FILE* code_file_in = fopen ("./Code.asm", "rb");
+    if (code_file_in == NULL)
+        {
+        printf ("File opening error");
+        exit;
+        }
 
-    Assembler (code_in, code_out);
+    FILE* code_file_out = fopen ("./MachineCode.bin", "wb");
+    if (code_file_in == NULL)
+        {
+        printf ("File opening/creating error");
+        exit;
+        }
 
-    fclose (code_in);
-    fclose (code_out);
+    Assembler (code_file_in, code_file_out); // FIXME parse errors
+
+    if (fclose (code_file_in) != NULL)
+        printf ("File closing error");
+    if (fclose (code_file_out) != NULL)
+        printf ("File closing error");
     }
 
 //-----------------------------------------------------------

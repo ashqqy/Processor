@@ -4,9 +4,13 @@
 
 //-----------------------------------------------------------
 
-void Processor (FILE* machine_code)
+int main ()
     {
-    
+    FILE* machine_code = fopen ("./MachineCode.bin", "rb");
+
+    Processor (machine_code);
+
+    fclose (machine_code);
     }
 
 //-----------------------------------------------------------

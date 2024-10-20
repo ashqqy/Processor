@@ -1,0 +1,7 @@
+all: built run
+
+built:
+	g++ -I./SPU/include -I./Stack/include -I./Common/include ./SPU/src/*.cpp ./Stack/src/Stack.cpp ./Stack/src/MyAllocation.cpp ./Common/src/Common.cpp -o ./SPU/main
+
+run: 
+	./SPU/main

@@ -1,7 +1,0 @@
-all: built run
-
-built:
-	g++ -I./Processor/include ./Processor/src/*.cpp -o ./Processor/main
-
-run: 
-	./Processor/main

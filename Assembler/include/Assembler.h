@@ -5,17 +5,17 @@
 
 //-----------------------------------------------------------
 
-enum SPU_COMMANDS
+const int LABLE_NAME_LEN = 30;
+
+struct label
     {
-    PUSH = 1,
-    ADD =  2,
-    SUB =  3,
-    MUL =  4,
-    DIV =  5,
-    HLT =  -1
+    char label_name[LABLE_NAME_LEN];
+    int label_number;
     };
 
-void Assembler (FILE* code_in, FILE* code_out);
+const int N_LABELS = 10;
+
+void Assembler (FILE* code_file_in, FILE* code_file_out);
 
 //-----------------------------------------------------------
 

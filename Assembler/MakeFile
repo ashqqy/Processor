@@ -1,7 +1,7 @@
 all: built run
 
 built:
-	g++ -I./Assembler/include ./Assembler/src/*.cpp -o ./Assembler/main
+	g++ -I./Assembler/include -I./Common/include ./Assembler/src/*.cpp ./Common/src/Common.cpp -o ./Assembler/main
 
 run:
-	./Assembler/main
+	./Assembler/main $(ARGS) # REVIEW
