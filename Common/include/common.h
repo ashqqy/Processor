@@ -29,11 +29,36 @@ enum REG
     CX = 3
     };
 
+enum FILE_ERRORS
+    {
+    FILE_OPENING_ERROR = 2000,
+    FILE_CLOSING_ERROR = 2001
+    };
+
+enum COMPILATION_ERRORS
+    {
+    COMPILATION_OK = 1000,
+    SYNTAX_ERROR = 1001
+    };
+
+enum RUNTIME_ERRORS
+    {
+    RUN_OK = 1500,
+    INVALID_LABEL = 1501
+    };
+
+//----------------------------------------------------------------
+
+const char* const COLOR_RED     = "\033[1;31m";
+const char* const COLOR_MAGENTA = "\033[1;35m";
+const char* const COLOR_DEFAULT = "\033[1;0m";
+
 //----------------------------------------------------------------
 
 size_t TextCreator (FILE* file_input, char** text);
 size_t MyStrlen (char* str);
 void ArrayDump (char* array, size_t size_array);
+void ErrorOutput (int error_type, const char* error_message, int error_arg = 0);
 
 //----------------------------------------------------------------
 

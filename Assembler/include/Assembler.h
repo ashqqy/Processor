@@ -2,6 +2,7 @@
 #define ASSEMBLER
 
 #include <stdio.h>
+#include "common.h"
 
 //-----------------------------------------------------------
 
@@ -15,7 +16,15 @@ struct label
 
 const int N_LABELS = 10;
 
-void Assembler (FILE* code_file_in, FILE* code_file_out);
+const int FIRST_COMPILATION  = 1;
+const int SECOND_COMPILATION = 2;
+
+//-----------------------------------------------------------
+
+COMPILATION_ERRORS Assembler (FILE* code_file_in, FILE* code_file_out, label* labels_array, int compilation_number);
+void LabelsInit (label* labels_array);
+void LabelsDestroy (label* labels_array);
+void LabelsDump (label* labels_array);
 
 //-----------------------------------------------------------
 

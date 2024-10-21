@@ -40,3 +40,19 @@ void ArrayDump (char* array, size_t size_array)
     }
 
 //----------------------------------------------------------------
+
+void ErrorOutput (int error_type, const char* error_message, int error_arg)
+    {
+    switch (error_type)
+        {
+        case SYNTAX_ERROR:  printf ("%sSyntax Error:%s '%s%s%s'\n", COLOR_RED, COLOR_DEFAULT, COLOR_MAGENTA, 
+                                                                    error_message, COLOR_DEFAULT);
+                            break;
+
+        case INVALID_LABEL: printf ("%sInvalid Label:%s '%s%d%s'\n", COLOR_RED, COLOR_DEFAULT, COLOR_MAGENTA,
+                                                                     error_arg, COLOR_DEFAULT);
+                            break;                                       
+        }                   
+    }
+
+//----------------------------------------------------------------

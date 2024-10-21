@@ -12,7 +12,7 @@
 
 //-----------------------------------------------------------
 
-void Processor (FILE* machine_code)
+RUNTIME_ERRORS Processor (FILE* machine_code)
     {
     assert (machine_code != NULL);
 
@@ -68,7 +68,12 @@ void Processor (FILE* machine_code)
             case DUMP:
                         SPUDUMP (&SPU, 1);
                         ++ip; break;
-            case JMP:
+            case JMP:   
+                        if (code[ip + 1] < 0)
+                            {
+                            ErrorOutput (INVALID_LABEL, "", code[ip + 1]);
+                            return INVALID_LABEL;
+                            }
                         ip = code[++ip]; 
                               break;
             case HLT:   
@@ -77,6 +82,7 @@ void Processor (FILE* machine_code)
         }
 
     SPUDestroy (&SPU);
+    return RUN_OK;
     }
 
 //-----------------------------------------------------------

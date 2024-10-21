@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "Stack.h"
+#include "Common.h"
 
 //-----------------------------------------------------------
 
@@ -17,7 +18,7 @@ struct SPU_t
 
 //-----------------------------------------------------------
 
-void Processor (FILE* machine_code);
+RUNTIME_ERRORS Processor (FILE* machine_code);
 void SPUInit (SPU_t* SPU);
 void SPUDestroy (SPU_t* SPU);
 void SPUDump (SPU_t* SPU, bool stack_dump, const char* file, int line, const char* func);
