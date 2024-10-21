@@ -47,8 +47,73 @@ COMPILATION_ERRORS Assembler (FILE* code_file_in, FILE* code_file_out, label* la
             case PUSH: 
                 {
                 machine_code[ip++] = machine_cmd;
-                fscanf (code_file_in, "%d", &machine_code[ip++]);
+
+                int arg_type = 0;
+
+                char push_arg[PUSH_ARG_LEN] = {};
+                fscanf (code_file_in, "%[^\n]", &push_arg);
+
+                char* open_bracket = strchr (push_arg, '[');
+                char* plus_ptr     = strchr (push_arg, '+');
+                char* reg_ptr      = strchr (push_arg, 'X');
+
+                if (open_bracket != NULL)
+                        {
+                        char* close_bracket = strchr (push_arg, ']');
+                        if (close_bracket == NULL)
+                            ErrorOutput (SYNTAX_ERROR, "expected: ']'");
+                        arg_type |= 4;
+                        }
+                if (plus_ptr != NULL)
+                        arg_type |= 3;
+                else if (reg_ptr != NULL)
+                        arg_type |= 1;
+                else    
+                        arg_type |= 2;
+
+                machine_code[ip++] = arg_type;
+
+                if (arg_type & 1)
+                    {
+                         if (strstr (push_arg, "AX") != NULL) machine_code[ip++] = AX;
+                    else if (strstr (push_arg, "BX") != NULL) machine_code[ip++] = BX;
+                    else if (strstr (push_arg, "CX") != NULL) machine_code[ip++] = CX;
+                    }
+                
+                if (arg_type & 3)
+                    {
+                    int iconst = 0;
+                    if (arg_type & 4)
+                        {
+                        int n_read = sscanf (push_arg, "%*c %*c %*c %*c %*c %d", &iconst);
+                        if (n_read == 0)
+                            {
+                            sscanf (push_arg, "%*c %*c %d", &iconst);
+                            machine_code[ip++] = iconst;
+                            }
+                        else 
+                            machine_code[ip++] = iconst;
+                        }
+                    else
+                        {
+                        int n_read = sscanf (push_arg, "%*c %*c %*c %d", &iconst);
+                        if (n_read == 0)
+                            sscanf (push_arg, "%d", &machine_code[ip++]);
+                        else 
+                            machine_code[ip++] = iconst;
+                        }
+                    }
+
+                else if (arg_type & 2)
+                    {
+                    if (arg_type & 4)
+                        sscanf (push_arg, "%*c %*c %d", &machine_code[ip++]);
+                    else 
+                        sscanf (push_arg, "%d", &machine_code[ip++]);
+                    }
+                    
                 break;
+                
                 }
 
             case PUSHR: case POP:

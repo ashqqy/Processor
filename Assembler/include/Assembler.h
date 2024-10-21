@@ -7,6 +7,7 @@
 //-----------------------------------------------------------
 
 const int LABLE_NAME_LEN = 30;
+const int PUSH_ARG_LEN   = 30;
 
 struct label
     {

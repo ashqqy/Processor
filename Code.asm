@@ -1,4 +1,4 @@
-push 30
+push [30 + AX]
 BEBRA:
 push 70
 jmp SPGOIDA:

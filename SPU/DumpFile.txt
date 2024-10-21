@@ -1,6 +1,6 @@
-SPU[0x00000058c41ff850] at ./SPU/src/Processor.cpp:69 (Processor)
+SPU[0x000000938bdff610] at ./SPU/src/Processor.cpp:69 (Processor)
     {
-    registers[0x00000058c41ff880]
+    registers[0x000000938bdff640]
         {
         ZR = [0]
         AX = [0]
@@ -8,13 +8,13 @@ SPU[0x00000058c41ff850] at ./SPU/src/Processor.cpp:69 (Processor)
         CX = [0]
         }
     }
-Stack_t [0x00000058c41ff850] at ./SPU/src/Processor.cpp:147 (SPUDump)
+Stack_t [0x000000938bdff610] at ./SPU/src/Processor.cpp:147 (SPUDump)
     { 
     left_canary (struct) = 0xBEB1A 
     size = 2 
     capacity = 10 
-    hash = 0x4FDF94BC 
-    data[0x0000019c09f91450]: 
+    hash = 0x3211BD10 
+    data[0x00000279a3351450]: 
         { 
         left_canary (data) = 0xBEB1A
         *[0] = 30; 
