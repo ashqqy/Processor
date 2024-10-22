@@ -45,84 +45,19 @@ COMPILATION_ERRORS Assembler (FILE* code_file_in, FILE* code_file_out, label* la
         switch (machine_cmd)
             {
             case PUSH: 
+            case POP:
                 {
                 machine_code[ip++] = machine_cmd;
 
-                int arg_type = 0;
+                char arg_unformate[ARG_LEN] = {};
+                fscanf (code_file_in, "%[^\n]", &arg_unformate);
+                char arg[ARG_LEN] = {};
+                FormateArg (arg_unformate, arg, ARG_LEN);
 
-                char push_arg[PUSH_ARG_LEN] = {};
-                fscanf (code_file_in, "%[^\n]", &push_arg);
-
-                char* open_bracket = strchr (push_arg, '[');
-                char* plus_ptr     = strchr (push_arg, '+');
-                char* reg_ptr      = strchr (push_arg, 'X');
-
-                if (open_bracket != NULL)
-                        {
-                        char* close_bracket = strchr (push_arg, ']');
-                        if (close_bracket == NULL)
-                            ErrorOutput (SYNTAX_ERROR, "expected: ']'");
-                        arg_type |= 4;
-                        }
-                if (plus_ptr != NULL)
-                        arg_type |= 3;
-                else if (reg_ptr != NULL)
-                        arg_type |= 1;
-                else    
-                        arg_type |= 2;
-
-                machine_code[ip++] = arg_type;
-
-                if (arg_type & 1)
-                    {
-                         if (strstr (push_arg, "AX") != NULL) machine_code[ip++] = AX;
-                    else if (strstr (push_arg, "BX") != NULL) machine_code[ip++] = BX;
-                    else if (strstr (push_arg, "CX") != NULL) machine_code[ip++] = CX;
-                    }
-                
-                if (arg_type & 3)
-                    {
-                    int iconst = 0;
-                    if (arg_type & 4)
-                        {
-                        int n_read = sscanf (push_arg, "%*c %*c %*c %*c %*c %d", &iconst);
-                        if (n_read == 0)
-                            {
-                            sscanf (push_arg, "%*c %*c %d", &iconst);
-                            machine_code[ip++] = iconst;
-                            }
-                        else 
-                            machine_code[ip++] = iconst;
-                        }
-                    else
-                        {
-                        int n_read = sscanf (push_arg, "%*c %*c %*c %d", &iconst);
-                        if (n_read == 0)
-                            sscanf (push_arg, "%d", &machine_code[ip++]);
-                        else 
-                            machine_code[ip++] = iconst;
-                        }
-                    }
-
-                else if (arg_type & 2)
-                    {
-                    if (arg_type & 4)
-                        sscanf (push_arg, "%*c %*c %d", &machine_code[ip++]);
-                    else 
-                        sscanf (push_arg, "%d", &machine_code[ip++]);
-                    }
-                    
-                break;
-                
-                }
-
-            case PUSHR: case POP:
-                {
-                machine_code[ip++] = machine_cmd;
-                fscanf (code_file_in, "%s", &cmd);
-                if (strcmp (cmd, "AX") == 0) machine_code[ip++] = AX;
-                if (strcmp (cmd, "BX") == 0) machine_code[ip++] = BX;
-                if (strcmp (cmd, "CX") == 0) machine_code[ip++] = CX;
+                COMPILATION_ERRORS ppc_err = PushPopCase (machine_code, &ip, arg);
+                if (ppc_err != COMPILATION_OK)
+                    return ppc_err;
+    
                 break;
                 }
 
@@ -145,7 +80,10 @@ COMPILATION_ERRORS Assembler (FILE* code_file_in, FILE* code_file_out, label* la
                             if (compilation_number == FIRST_COMPILATION)
                                 machine_code[ip++] = -1;
                             if (compilation_number == SECOND_COMPILATION)
+                                {
                                 ErrorOutput (SYNTAX_ERROR, cmd);
+                                return SYNTAX_ERROR;
+                                }
                             }
                         }
                 break;
@@ -163,12 +101,23 @@ COMPILATION_ERRORS Assembler (FILE* code_file_in, FILE* code_file_out, label* la
                 break;
                 }
 
-            case ADD: case SUB: case MUL: case DIV: case IN: case OUT: case DUMP: case HLT: 
+            case ADD: 
+            case SUB: 
+            case MUL: 
+            case DIV: 
+            case IN: 
+            case OUT: 
+            case DUMP: 
+            case HLT: 
                 machine_code[ip++] = machine_cmd; 
                 break;
 
             case ERRCMD: 
-                if (n_readed != -1) ErrorOutput (SYNTAX_ERROR, cmd);
+                if (n_readed != -1) 
+                    {
+                    ErrorOutput (SYNTAX_ERROR, cmd);
+                    return SYNTAX_ERROR;
+                    }
                 break;
             }
         }
@@ -210,6 +159,130 @@ void LabelsDump (label* labels_array)
             printf ("    Empty label\n");
         }
     printf ("    }\n");
+    }
+
+//-----------------------------------------------------------
+
+COMPILATION_ERRORS FillArgType (char* arg, int* arg_type)
+    {
+    assert (arg      != NULL);
+    assert (arg_type != NULL);
+
+    char* open_bracket = strchr (arg, '[');
+    char* plus_ptr     = strchr (arg, '+');
+    char* reg_ptr      = strchr (arg, 'X');
+
+    if (open_bracket != NULL)
+            {
+            char* close_bracket = strchr (arg, ']');
+            if (close_bracket == NULL)
+                {
+                ErrorOutput (SYNTAX_ERROR, "expected: ']'");
+                return SYNTAX_ERROR;
+                }
+            *arg_type |= 4;
+            }
+    if (plus_ptr != NULL)
+            *arg_type |= 3;
+    else if (reg_ptr != NULL)
+            *arg_type |= 1;
+    else    
+            *arg_type |= 2;
+
+    return COMPILATION_OK;
+    }
+
+//-----------------------------------------------------------
+
+char* SearchConst (char* str, int str_len)
+    {
+    assert (str != NULL);
+
+    char symb = *str;
+    for (int i = 0; i < str_len; i++)
+        {
+        if (48 <= symb && symb <= 57)
+            return str;
+        str += 1;
+        symb = *str;
+        }
+    return NULL;
+    }
+
+int SearchReg (char* str)
+    {
+    assert (str != NULL);
+
+         if (strstr (str, "AX") != NULL) return AX;
+    else if (strstr (str, "BX") != NULL) return BX;
+    else if (strstr (str, "CX") != NULL) return CX;
+
+    return NONEXISTENT_REGISTER;
+    }
+
+//-----------------------------------------------------------
+
+void FormateArg (char push_arg_unformated[], char push_arg[], int push_arg_len)
+    {
+    assert (push_arg_unformated != NULL);
+
+    char symb = *push_arg_unformated;
+    char push_arg_formated[push_arg_len] = {};
+    int format_ptr = 0;
+
+    while (symb == 32)
+        {
+        push_arg_unformated += 1;
+        symb = *push_arg_unformated;
+        }
+
+    for (int i = 0; i < push_arg_len; i++)
+        {
+        if (symb != 13)
+            {
+            push_arg_formated[format_ptr] = symb;
+            format_ptr += 1;
+            }
+        push_arg_unformated += 1;
+        symb = *push_arg_unformated;
+        }
+    memcpy (push_arg, push_arg_formated, push_arg_len);
+    }
+
+//-----------------------------------------------------------
+
+COMPILATION_ERRORS PushPopCase (int* machine_code, int* ip, char* arg)
+    {
+    int arg_type = 0;
+
+    COMPILATION_ERRORS fat_err = FillArgType (arg, &arg_type);
+    if (fat_err != COMPILATION_OK)
+        return fat_err;
+    machine_code[(*ip)++] = arg_type;
+    if (arg_type & 1)
+        {
+        int reg = SearchReg (arg);
+        if (reg == NONEXISTENT_REGISTER)
+            {
+            ErrorOutput (NONEXISTENT_REGISTER, arg);
+            return NONEXISTENT_REGISTER;
+            }
+        machine_code[(*ip)++] = reg;
+        }
+    
+    if (arg_type & 2)
+        {
+        char* intptr = SearchConst (arg, ARG_LEN);
+        if (intptr != NULL)
+            sscanf (intptr, "%d", &machine_code[(*ip)++]);
+        else    
+            {
+            ErrorOutput (MISSING_CONSTANT_ARGUMENT, arg);
+            return MISSING_CONSTANT_ARGUMENT;
+            }
+        }
+    
+    return COMPILATION_OK;
     }
 
 //-----------------------------------------------------------

@@ -1,9 +1,9 @@
-push [30 + AX]
+push [BX + 7]
 BEBRA:
 push 70
-jmp SPGOIDA:
+jmp SP:
 push 110
 push 150
-SPGOIDA:
+SP:
 dump
 hlt

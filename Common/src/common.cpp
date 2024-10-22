@@ -45,13 +45,27 @@ void ErrorOutput (int error_type, const char* error_message, int error_arg)
     {
     switch (error_type)
         {
-        case SYNTAX_ERROR:  printf ("%sSyntax Error:%s '%s%s%s'\n", COLOR_RED, COLOR_DEFAULT, COLOR_MAGENTA, 
-                                                                    error_message, COLOR_DEFAULT);
-                            break;
+        case SYNTAX_ERROR:          
+                                    printf ("%sSyntax Error:%s '%s%s%s'\n", 
+                                            COLOR_RED, COLOR_DEFAULT, COLOR_MAGENTA, 
+                                            error_message, COLOR_DEFAULT);
+                                    break;
 
-        case INVALID_LABEL: printf ("%sInvalid Label:%s '%s%d%s'\n", COLOR_RED, COLOR_DEFAULT, COLOR_MAGENTA,
-                                                                     error_arg, COLOR_DEFAULT);
-                            break;                                       
+        case INVALID_LABEL:         
+                                    printf ("%sInvalid Label:%s '%s%d%s'\n", 
+                                            COLOR_RED, COLOR_DEFAULT, COLOR_MAGENTA,
+                                            error_arg, COLOR_DEFAULT);
+                                    break;                               
+        case NONEXISTENT_REGISTER:  
+                                    printf ("%sUsing a Nonexistent Register:%s '%s%s%s'\n", 
+                                            COLOR_RED, COLOR_DEFAULT, COLOR_MAGENTA,
+                                            error_message, COLOR_DEFAULT);  
+                                    break;      
+        case MISSING_CONSTANT_ARGUMENT:         
+                                    printf ("%sMissing Constant Argument:%s '%s%s%s'\n", 
+                                            COLOR_RED, COLOR_DEFAULT, COLOR_MAGENTA, 
+                                            error_message, COLOR_DEFAULT);  
+                                    break;   
         }                   
     }
 

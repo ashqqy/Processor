@@ -37,13 +37,15 @@ enum FILE_ERRORS
 
 enum COMPILATION_ERRORS
     {
-    COMPILATION_OK = 1000,
-    SYNTAX_ERROR = 1001
+    COMPILATION_OK            = 1000,
+    SYNTAX_ERROR              = 1001,
+    NONEXISTENT_REGISTER      = 1002,
+    MISSING_CONSTANT_ARGUMENT = 1003
     };
 
 enum RUNTIME_ERRORS
     {
-    RUN_OK = 1500,
+    RUN_OK        = 1500,
     INVALID_LABEL = 1501
     };
 
