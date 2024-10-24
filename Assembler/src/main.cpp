@@ -25,8 +25,13 @@ int main () // TODO args parsing
     label labels_array[N_LABELS] = {};
     LabelsInit (labels_array);
 
-    Assembler (code_file_in, code_file_out, labels_array, FIRST_COMPILATION); // FIXME parse errors
-    Assembler (code_file_in, code_file_out, labels_array, SECOND_COMPILATION);
+    compilation_error_t compilation_error = COMPILATION_OK;
+    compilation_error = Assembler (code_file_in, code_file_out, labels_array, FIRST_COMPILATION);
+    if (compilation_error != COMPILATION_OK)
+        return compilation_error;
+    compilation_error = Assembler (code_file_in, code_file_out, labels_array, SECOND_COMPILATION);
+    if (compilation_error != COMPILATION_OK)
+        return compilation_error;
 
     LabelsDestroy (labels_array);
 

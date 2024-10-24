@@ -12,92 +12,131 @@
 
 //-----------------------------------------------------------
 
-RUNTIME_ERRORS Processor (FILE* machine_code)
+runtime_error_t Processor (FILE* machine_code)
     {
     assert (machine_code != NULL);
 
+    size_t size_machine_code = FileSizeFinder (machine_code);
+    size_machine_code /= sizeof (int);
+
+    int* code = (int*) calloc (size_machine_code + 1, sizeof (int));
+    code[size_machine_code + 1] = 0;
+    fread (code, sizeof (int), size_machine_code, machine_code);
+
     SPU_t SPU = {};
-    SPUInit (&SPU);
+    SPUInit (&SPU, &code);
 
-    int code[100] = {}; // TODO read full file
-    fread (code, sizeof (code[0]), sizeof (code) / sizeof (code[0]), machine_code);
-
-    int ip = 0;
-
-    while (code[ip] != 0)
+    while (code[SPU.ip] != 0)
         {
-        switch (code[ip])
+        switch (code[SPU.ip])
             {
             case PUSH:  
-                        StackPush (&SPU.stack, code[++ip]); // TODO check errors
-                        ++ip; break; 
-            case PUSHR: 
-                        StackPush (&SPU.stack, (SPU.registers)[code[++ip]]); 
-                        ++ip; break;
+                        {
+                        int* push_elem_ptr = GetArg (&SPU);
+                        StackPush (&SPU.stack, *push_elem_ptr); // TODO check errors
+                        ++(SPU.ip); break; 
+                        }
+            case POP:   
+                        {
+                        int* pop_ptr = GetArg (&SPU);
+                        *pop_ptr = StackPop (&SPU.stack); 
+                        ++(SPU.ip); break;
+                        }
             case ADD:   
                         StackPush (&SPU.stack, StackPop (&SPU.stack) + StackPop (&SPU.stack)); 
-                        ++ip; break;
+                        ++(SPU.ip); break;
             case SUB: 
                         {
                         int a = StackPop (&SPU.stack);
                         StackPush (&SPU.stack, StackPop (&SPU.stack) - a); 
-                        ++ip; break;
+                        ++(SPU.ip); break;
                         }
             case MUL:   
                         StackPush (&SPU.stack, StackPop (&SPU.stack) * StackPop (&SPU.stack)); 
-                        ++ip; break;
+                        ++(SPU.ip); break;
             case DIV: 
                         {
                         int a = StackPop (&SPU.stack);
                         assert (a != 0);
                         StackPush (&SPU.stack, StackPop (&SPU.stack) / a);
-                        ++ip; break;
+                        ++(SPU.ip); break;
                         }
             case IN:
                         {
-                        int a = 0; scanf ("%d", &a);
+                        int a = 0;
+                        scanf ("%d", &a);
                         StackPush (&SPU.stack, a); 
-                        ++ip; break;
+                        ++(SPU.ip); break;
                         }
             case OUT:   
-                        printf ("%d", StackPop (&SPU.stack)); 
-                        ++ip; break;
-            case POP:   
-                        (SPU.registers)[code[++ip]] = StackPop (&SPU.stack); 
-                        ++ip; break;
+                        printf ("out: %d\n", StackPop (&SPU.stack)); 
+                        ++(SPU.ip); break;
             case DUMP:
                         SPUDUMP (&SPU, 1);
-                        ++ip; break;
+                        ++(SPU.ip); break;
             case JMP:   
-                        if (code[ip + 1] < 0)
+            case JA:
+            case JAE:
+            case JB:
+            case JBE:
+            case JE:
+            case JNE:
+                        if (code[(SPU.ip) + 1] < 0)
                             {
-                            ErrorOutput (INVALID_LABEL, "", code[ip + 1]);
+                            ErrorOutput (INVALID_LABEL, "", code[SPU.ip + 1]);
                             return INVALID_LABEL;
                             }
-                        ip = code[++ip]; 
-                              break;
+                        if (JumpOrNo (code[SPU.ip], &SPU.stack) == YES)
+                            {
+                            SPU.ip++;
+                            SPU.ip = code[SPU.ip]; 
+                            }
+                        else 
+                            SPU.ip += 2; 
+                        break;
+            case DRAW:  
+                        {
+                        for (int y = 0; y < 10; y++)
+                            {
+                            for (int x = 0; x < 10; x++)
+                                {
+                                printf ("[%c]", SPU.RAM[x + 10 * y]);
+                                }
+                            printf ("\n");
+                            }
+                        printf ("\n");
+                        }
+                        ++(SPU.ip); break;
             case HLT:   
-                        ++ip; break;
+                        code[SPU.ip] = 0; 
+                        break;
+            default:
+                        code[SPU.ip] = 0;
+                        ErrorOutput (UNINDEFINED_COMMAND, "", code[SPU.ip]);
+                        break;
             }
         }
-
     SPUDestroy (&SPU);
     return RUN_OK;
     }
 
 //-----------------------------------------------------------
 
-void SPUInit (SPU_t* SPU)
+void SPUInit (SPU_t* SPU, int** code)
     {
-    assert (SPU != NULL);
+    assert (SPU   != NULL);
+    assert (code  != NULL);
+    assert (*code != NULL);
 
     SPU->stack = {};
     StackInit (&SPU->stack);
 
-    memset (&SPU->registers, 0, N_REGS * sizeof (int));
-    }
+    SPU->ip = 0;
+    SPU->code = code;
 
-//-----------------------------------------------------------
+    memset (&SPU->registers, 0, N_REGS * sizeof (int));
+    memset (&SPU->RAM, 0, RAM_SIZE * sizeof (int));
+    }
 
 void SPUDestroy (SPU_t* SPU)
     {
@@ -105,16 +144,21 @@ void SPUDestroy (SPU_t* SPU)
 
     StackDestroy (&SPU->stack);
 
+    SPU->ip = 0;
+
+    free (*SPU->code); *SPU->code = NULL;
+    SPU->code = NULL;
+
     memset (&SPU->registers, 0, N_REGS * sizeof (int));
+    memset (&SPU->RAM, 0, RAM_SIZE * sizeof (int));
     }
 
 //-----------------------------------------------------------
 
-// FIXME можно сделать только один дамп
 void SPUDump (SPU_t* SPU, bool stack_dump, const char* file, int line, const char* func)
     {
     /// Если файл для дампа есть или его можно создать, то вывод туда, иначе в консоль
-    FILE* dump_file = fopen ("./SPU/DumpFile.txt", "w");
+    FILE* dump_file = fopen ("./SPU/DumpFile.txt", "a");
     if (dump_file == NULL)
         dump_file = stderr;
 
@@ -122,6 +166,9 @@ void SPUDump (SPU_t* SPU, bool stack_dump, const char* file, int line, const cha
 
     fprintf (dump_file, "SPU[0x%p] at %s:%d (%s)\n", SPU, file, line, func);
     fprintf (dump_file, "    {\n");
+
+    fprintf (dump_file, "    ip = [%d]\n", SPU->ip);
+    fprintf (dump_file, "    \n");
 
     assert (SPU->registers != NULL);
 
@@ -146,6 +193,78 @@ void SPUDump (SPU_t* SPU, bool stack_dump, const char* file, int line, const cha
         assert (&(SPU->stack) != NULL);
         StackDump (&(SPU->stack), dump_file, __FILE__, __LINE__, __func__);
         }
+    }
+
+//-----------------------------------------------------------
+
+int* GetArg (SPU_t* SPU) // REVIEW Нужна ли проверка для попа
+    {
+    // int operation = (*SPU->code)[(SPU->ip)];
+    int arg_type  = (*SPU->code)[++(SPU->ip)];
+    int* arg_value = NULL;
+
+    if (arg_type & 1)
+        arg_value = &(SPU->registers[(*SPU->code)[++(SPU->ip)]]);
+
+    if (arg_type & 2)
+        {
+        if (arg_value != NULL)
+            SPU->registers[ZR] = *arg_value + (*SPU->code)[++(SPU->ip)];
+        else
+            SPU->registers[ZR] = (*SPU->code)[++(SPU->ip)];
+
+        arg_value = &SPU->registers[ZR];
+        }
+
+    if (arg_type & 4)
+        arg_value = &SPU->RAM[*arg_value];
+    
+    return arg_value;
+    }
+
+//-----------------------------------------------------------
+
+bool JumpOrNo (int jump, Stack_t* stack)
+    {
+    if (jump == JMP)
+        return YES;
+    else 
+        {
+        int a = StackPop (stack);
+        int b = StackPop (stack);
+
+        switch (jump)
+            {
+            case JA:
+                if (b > a)
+                    return YES;
+                break;
+            case JAE:
+                if (b >= a)
+                    return YES;
+                break;
+            case JB:
+                if (b < a)
+                    return YES;
+                break;
+            case JBE:
+                if (b <= a)
+                    return YES;
+                break;
+            case JE:
+                if (b == a)
+                    return YES;
+                break;
+            case JNE: 
+                if (b != a)
+                    return YES;
+                break;
+                
+            default: 
+                return NO;
+            }
+        }
+    return NO;
     }
 
 //-----------------------------------------------------------

@@ -3,25 +3,31 @@
 
 //----------------------------------------------------------------
 
-enum SPU_COMMANDS
+enum spu_command_t
     {
     ERRCMD = 0,
     PUSH   = 1,
-    ADD    = 2,
-    SUB    = 3,
-    MUL    = 4,
-    DIV    = 5,
-    IN     = 6,
-    OUT    = 7,
-    PUSHR  = 8,
-    POP    = 9,
-    DUMP   = 10,
-    LABEL  = 11,
-    JMP    = 12,
+    POP    = 2,
+    ADD    = 3,
+    SUB    = 4,
+    MUL    = 5,
+    DIV    = 6,
+    IN     = 7,
+    OUT    = 8,
+    DUMP   = 9,
+    JMP    = 10,
+    JA     = 11,
+    JAE    = 12, 
+    JB     = 13,
+    JBE    = 14,
+    JE     = 15,
+    JNE    = 16,
+    LABEL  = 17,
+    DRAW   = 18,
     HLT    = -1
     };
 
-enum REG
+enum reg_t
     {
     ZR = 0,
     AX = 1,
@@ -29,24 +35,26 @@ enum REG
     CX = 3
     };
 
-enum FILE_ERRORS
+enum file_error_t
     {
     FILE_OPENING_ERROR = 2000,
     FILE_CLOSING_ERROR = 2001
     };
 
-enum COMPILATION_ERRORS
+enum compilation_error_t
     {
     COMPILATION_OK            = 1000,
     SYNTAX_ERROR              = 1001,
     NONEXISTENT_REGISTER      = 1002,
-    MISSING_CONSTANT_ARGUMENT = 1003
+    MISSING_CONSTANT_ARGUMENT = 1003,
+    TOO_MANY_LABELS           = 1004
     };
 
-enum RUNTIME_ERRORS
+enum runtime_error_t
     {
-    RUN_OK        = 1500,
-    INVALID_LABEL = 1501
+    RUN_OK              = 1500,
+    INVALID_LABEL       = 1501,
+    UNINDEFINED_COMMAND = 1502
     };
 
 //----------------------------------------------------------------
@@ -58,8 +66,9 @@ const char* const COLOR_DEFAULT = "\033[1;0m";
 //----------------------------------------------------------------
 
 size_t TextCreator (FILE* file_input, char** text);
+size_t FileSizeFinder (FILE* file_input);
 size_t MyStrlen (char* str);
-void ArrayDump (char* array, size_t size_array);
+void ArrayDump (int* array, size_t size_array);
 void ErrorOutput (int error_type, const char* error_message, int error_arg = 0);
 
 //----------------------------------------------------------------

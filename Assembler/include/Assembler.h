@@ -17,21 +17,29 @@ struct label
 
 const int N_LABELS = 10;
 
-const int FIRST_COMPILATION  = 1;
-const int SECOND_COMPILATION = 2;
+enum compilation_number_t
+    {
+    FIRST_COMPILATION  = 1,
+    SECOND_COMPILATION = 2
+    };
 
 //-----------------------------------------------------------
 
-COMPILATION_ERRORS Assembler (FILE* code_file_in, FILE* code_file_out, label* labels_array, int compilation_number);
+compilation_error_t Assembler (FILE* code_file_in, FILE* code_file_out, label* labels_array, compilation_number_t compilation_number);
+void FromTextToMachineCode (char* text_cmd, spu_command_t* machine_cmd);
+
 void LabelsInit (label* labels_array);
 void LabelsDestroy (label* labels_array);
 void LabelsDump (label* labels_array);
+
 char* SearchConst (char* str, int str_len);
 int SearchReg (char* str);
 
-COMPILATION_ERRORS FillArgType (char* push_arg, int* arg_type);
-void FormateArg (char push_arg_unformated[], char push_arg_formated[], int push_arg_len);
-COMPILATION_ERRORS PushPopCase (int* machine_code, int* ip, char* arg);
+compilation_error_t FillArgType (char* push_arg, int* arg_type);
+void FormateArg (char push_arg_unformated[], char push_arg_formated[]);
+
+compilation_error_t PushPopCase (int* machine_code, int* ip, char* arg);
+compilation_error_t JumpCase (char* text_cmd, int* machine_code, int* ip, label* labels_array, int compilation_number);
 
 //-----------------------------------------------------------
 
