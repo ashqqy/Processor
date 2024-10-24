@@ -15,13 +15,15 @@ struct label
     int label_number;
     };
 
-const int N_LABELS = 10;
+const int N_LABELS = 20;
 
 enum compilation_number_t
     {
     FIRST_COMPILATION  = 1,
     SECOND_COMPILATION = 2
     };
+
+const int MACHINE_CODE_SIZE = 1000;
 
 //-----------------------------------------------------------
 

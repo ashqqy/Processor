@@ -6,9 +6,9 @@
 
 //-----------------------------------------------------------
 
-int main () // TODO args parsing
+int main (int argc, const char** argv)
     {
-    FILE* code_file_in = fopen ("./Code.asm", "rb");
+    FILE* code_file_in = fopen (argv[argc - 1], "rb");
     if (code_file_in == NULL)
         {
         printf ("File opening error");

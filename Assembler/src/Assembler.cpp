@@ -19,13 +19,13 @@ compilation_error_t Assembler (FILE* code_file_in, FILE* code_file_out, label* l
     if (compilation_number == SECOND_COMPILATION)
         fseek (code_file_in, 0L, 0);
 
-    int machine_code[100] = {}; // TODO Читать в массив и calloc
+    int machine_code[MACHINE_CODE_SIZE] = {}; // TODO Читать в массив и calloc
     int ip = 0;
 
     int n_readed = 0;
     while (n_readed != EOF)
         {
-        char text_cmd[10] = {};
+        char text_cmd[30] = {};
         n_readed = fscanf (code_file_in, "%s", text_cmd);
 
         spu_command_t machine_cmd = ERRCMD;
@@ -57,6 +57,7 @@ compilation_error_t Assembler (FILE* code_file_in, FILE* code_file_out, label* l
             case JBE:
             case JE:
             case JNE:
+            case CALL:
                 {
                 machine_code[ip++] = machine_cmd;
                 fscanf (code_file_in, "%s", text_cmd);
@@ -88,10 +89,12 @@ compilation_error_t Assembler (FILE* code_file_in, FILE* code_file_out, label* l
             case ADD: 
             case SUB: 
             case MUL: 
-            case DIV: 
+            case DIV:
+            case SQRT: 
             case IN: 
             case OUT: 
             case DUMP:
+            case RET:
             case DRAW:
             case HLT: 
                 machine_code[ip++] = machine_cmd; 
@@ -127,6 +130,7 @@ void FromTextToMachineCode (char* text_cmd, spu_command_t* machine_cmd)
     else if (strcmp (text_cmd, "sub")   == 0)  *machine_cmd = SUB;
     else if (strcmp (text_cmd, "mul")   == 0)  *machine_cmd = MUL;
     else if (strcmp (text_cmd, "div")   == 0)  *machine_cmd = DIV;
+    else if (strcmp (text_cmd, "sqrt")  == 0)  *machine_cmd = SQRT;
     else if (strcmp (text_cmd, "in")    == 0)  *machine_cmd = IN;
     else if (strcmp (text_cmd, "out")   == 0)  *machine_cmd = OUT;
     else if (strcmp (text_cmd, "dump")  == 0)  *machine_cmd = DUMP;
@@ -138,6 +142,8 @@ void FromTextToMachineCode (char* text_cmd, spu_command_t* machine_cmd)
     else if (strcmp (text_cmd, "je")    == 0)  *machine_cmd = JE;
     else if (strcmp (text_cmd, "jne")   == 0)  *machine_cmd = JNE;
     else if (strcmp (text_cmd, "draw")  == 0)  *machine_cmd = DRAW;
+    else if (strcmp (text_cmd, "call")  == 0)  *machine_cmd = CALL;
+    else if (strcmp (text_cmd, "ret")   == 0)  *machine_cmd = RET;
     else if (strcmp (text_cmd, "hlt")   == 0)  *machine_cmd = HLT;
     }
 
@@ -231,6 +237,7 @@ int SearchReg (char* str)
          if (strstr (str, "AX") != NULL) return AX;
     else if (strstr (str, "BX") != NULL) return BX;
     else if (strstr (str, "CX") != NULL) return CX;
+    else if (strstr (str, "DX") != NULL) return DX;
 
     return NONEXISTENT_REGISTER;
     }

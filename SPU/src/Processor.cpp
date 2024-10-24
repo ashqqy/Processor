@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <math.h>
 
 #include "Processor.h"
 #include "Stack.h"
@@ -36,24 +37,29 @@ runtime_error_t Processor (FILE* machine_code)
                         StackPush (&SPU.stack, *push_elem_ptr); // TODO check errors
                         ++(SPU.ip); break; 
                         }
+
             case POP:   
                         {
                         int* pop_ptr = GetArg (&SPU);
                         *pop_ptr = StackPop (&SPU.stack); 
                         ++(SPU.ip); break;
                         }
+
             case ADD:   
                         StackPush (&SPU.stack, StackPop (&SPU.stack) + StackPop (&SPU.stack)); 
                         ++(SPU.ip); break;
+
             case SUB: 
                         {
                         int a = StackPop (&SPU.stack);
                         StackPush (&SPU.stack, StackPop (&SPU.stack) - a); 
                         ++(SPU.ip); break;
                         }
+
             case MUL:   
                         StackPush (&SPU.stack, StackPop (&SPU.stack) * StackPop (&SPU.stack)); 
                         ++(SPU.ip); break;
+
             case DIV: 
                         {
                         int a = StackPop (&SPU.stack);
@@ -61,6 +67,15 @@ runtime_error_t Processor (FILE* machine_code)
                         StackPush (&SPU.stack, StackPop (&SPU.stack) / a);
                         ++(SPU.ip); break;
                         }
+            
+            case SQRT: 
+                        {
+                        double a = sqrt (StackPop (&SPU.stack));
+                        int b = (int) a * 100;
+                        StackPush (&SPU.stack, b);
+                        ++(SPU.ip); break;
+                        }
+
             case IN:
                         {
                         int a = 0;
@@ -68,12 +83,15 @@ runtime_error_t Processor (FILE* machine_code)
                         StackPush (&SPU.stack, a); 
                         ++(SPU.ip); break;
                         }
+
             case OUT:   
                         printf ("out: %d\n", StackPop (&SPU.stack)); 
                         ++(SPU.ip); break;
+
             case DUMP:
                         SPUDUMP (&SPU, 1);
                         ++(SPU.ip); break;
+
             case JMP:   
             case JA:
             case JAE:
@@ -94,8 +112,25 @@ runtime_error_t Processor (FILE* machine_code)
                         else 
                             SPU.ip += 2; 
                         break;
+
+            case CALL:
+                        if (code[(SPU.ip) + 1] < 0)
+                            {
+                            ErrorOutput (INVALID_LABEL, "", code[SPU.ip + 1]);
+                            return INVALID_LABEL;
+                            }
+                        StackPush (&SPU.stack_for_func, SPU.ip + 2);
+                        SPU.ip++;
+                        SPU.ip = code[SPU.ip];
+                        break;
+                        
+            case RET: 
+                        SPU.ip = StackPop (&SPU.stack_for_func);
+                        break;
+            
             case DRAW:  
                         {
+                        printf ("\n");
                         for (int y = 0; y < 10; y++)
                             {
                             for (int x = 0; x < 10; x++)
@@ -105,8 +140,9 @@ runtime_error_t Processor (FILE* machine_code)
                             printf ("\n");
                             }
                         printf ("\n");
-                        }
                         ++(SPU.ip); break;
+                        }
+                       
             case HLT:   
                         code[SPU.ip] = 0; 
                         break;
@@ -131,6 +167,9 @@ void SPUInit (SPU_t* SPU, int** code)
     SPU->stack = {};
     StackInit (&SPU->stack);
 
+    SPU->stack_for_func = {};
+    StackInit (&SPU->stack_for_func);
+
     SPU->ip = 0;
     SPU->code = code;
 
@@ -143,6 +182,7 @@ void SPUDestroy (SPU_t* SPU)
     assert (SPU != NULL);
 
     StackDestroy (&SPU->stack);
+    StackDestroy (&SPU->stack_for_func);
 
     SPU->ip = 0;
 
@@ -182,6 +222,7 @@ void SPUDump (SPU_t* SPU, bool stack_dump, const char* file, int line, const cha
             case AX: fprintf (dump_file, "        AX = [%d]\n", SPU->registers[i]); break;
             case BX: fprintf (dump_file, "        BX = [%d]\n", SPU->registers[i]); break;
             case CX: fprintf (dump_file, "        CX = [%d]\n", SPU->registers[i]); break;
+            case DX: fprintf (dump_file, "        DX = [%d]\n", SPU->registers[i]); break;
             default: fprintf (dump_file, "        reg(?) = [%d]\n", SPU->registers[i]); break;
             }
         }
@@ -192,6 +233,7 @@ void SPUDump (SPU_t* SPU, bool stack_dump, const char* file, int line, const cha
         {  
         assert (&(SPU->stack) != NULL);
         StackDump (&(SPU->stack), dump_file, __FILE__, __LINE__, __func__);
+        // StackDump (&(SPU->stack_for_func), dump_file, __FILE__, __LINE__, __func__); // стек для команды call
         }
     }
 
@@ -203,10 +245,10 @@ int* GetArg (SPU_t* SPU) // REVIEW Нужна ли проверка для по�
     int arg_type  = (*SPU->code)[++(SPU->ip)];
     int* arg_value = NULL;
 
-    if (arg_type & 1)
+    if (arg_type & REGISTER_BIT)
         arg_value = &(SPU->registers[(*SPU->code)[++(SPU->ip)]]);
 
-    if (arg_type & 2)
+    if (arg_type & CONSTANT_BIT)
         {
         if (arg_value != NULL)
             SPU->registers[ZR] = *arg_value + (*SPU->code)[++(SPU->ip)];
@@ -216,8 +258,13 @@ int* GetArg (SPU_t* SPU) // REVIEW Нужна ли проверка для по�
         arg_value = &SPU->registers[ZR];
         }
 
-    if (arg_type & 4)
+    if (arg_type & MEMORY_BIT)
+        {
         arg_value = &SPU->RAM[*arg_value];
+        // ЗАДЕРЖКА ПЕРЕД ОБРАЩЕНИЕМ К ОПЕРАТИВНОЙ ПАМЯТИ. 
+        // СДЕЛАНО ДЛЯ ПРИВЫКАНИЯ К ТОМУ, ЧТО ОПЕРАТИВКА ДОЛГАЯ
+        Sleep(1);  
+        }
     
     return arg_value;
     }
@@ -259,7 +306,7 @@ bool JumpOrNo (int jump, Stack_t* stack)
                 if (b != a)
                     return YES;
                 break;
-                
+
             default: 
                 return NO;
             }
@@ -268,3 +315,9 @@ bool JumpOrNo (int jump, Stack_t* stack)
     }
 
 //-----------------------------------------------------------
+
+void Sleep (int time)
+    {
+    for (int i = 0; i < time * 3*10e6; i++)
+        ;
+    }

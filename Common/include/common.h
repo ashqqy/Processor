@@ -12,18 +12,21 @@ enum spu_command_t
     SUB    = 4,
     MUL    = 5,
     DIV    = 6,
-    IN     = 7,
-    OUT    = 8,
-    DUMP   = 9,
-    JMP    = 10,
-    JA     = 11,
-    JAE    = 12, 
-    JB     = 13,
-    JBE    = 14,
-    JE     = 15,
-    JNE    = 16,
-    LABEL  = 17,
-    DRAW   = 18,
+    SQRT   = 7,
+    IN     = 8,
+    OUT    = 9,
+    DUMP   = 10,
+    JMP    = 11,
+    JA     = 12,
+    JAE    = 13, 
+    JB     = 14,
+    JBE    = 15,
+    JE     = 16,
+    JNE    = 17,
+    CALL   = 18,
+    RET    = 19,
+    LABEL  = 20,
+    DRAW   = 21,
     HLT    = -1
     };
 
@@ -32,7 +35,8 @@ enum reg_t
     ZR = 0,
     AX = 1,
     BX = 2,
-    CX = 3
+    CX = 3,
+    DX = 4
     };
 
 enum file_error_t
