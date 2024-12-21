@@ -14,7 +14,7 @@
 //-----------------------------------------------------------
 
 runtime_error_t Processor (FILE* machine_code)
-    {
+{
     assert (machine_code != NULL);
 
     size_t size_machine_code = FileSizeFinder (machine_code);
@@ -28,69 +28,95 @@ runtime_error_t Processor (FILE* machine_code)
     SPUInit (&SPU, &code);
 
     while (code[SPU.ip] != 0)
-        {
+    {
         switch (code[SPU.ip])
-            {
+        {
             case PUSH:  
-                        {
-                        int* push_elem_ptr = GetArg (&SPU);
-                        StackPush (&SPU.stack, *push_elem_ptr); // TODO check errors
-                        ++(SPU.ip); break; 
-                        }
+            {
+                int* push_elem_ptr = GetArg (&SPU);
+                StackPush (&SPU.stack, *push_elem_ptr); // TODO check errors
+                ++(SPU.ip); break; 
+            }
 
             case POP:   
-                        {
-                        int* pop_ptr = GetArg (&SPU);
-                        *pop_ptr = StackPop (&SPU.stack); 
-                        ++(SPU.ip); break;
-                        }
+            {
+                int* pop_ptr = GetArg (&SPU);
+                StackPop (&SPU.stack, pop_ptr); 
+                ++(SPU.ip); break;
+            }
 
             case ADD:   
-                        StackPush (&SPU.stack, StackPop (&SPU.stack) + StackPop (&SPU.stack)); 
-                        ++(SPU.ip); break;
+            {
+                int a = 0;
+                int b = 0;
+                StackPop (&SPU.stack, &a);
+                StackPop (&SPU.stack, &b);
+                StackPush (&SPU.stack, a + b); 
+                ++(SPU.ip); break;
+            }
 
             case SUB: 
-                        {
-                        int a = StackPop (&SPU.stack);
-                        StackPush (&SPU.stack, StackPop (&SPU.stack) - a); 
-                        ++(SPU.ip); break;
-                        }
+            {
+                int a = 0;
+                int b = 0;
+                StackPop (&SPU.stack, &a);
+                StackPop (&SPU.stack, &b);
+                StackPush (&SPU.stack, b - a); 
+                ++(SPU.ip); break;
+            }
 
             case MUL:   
-                        StackPush (&SPU.stack, StackPop (&SPU.stack) * StackPop (&SPU.stack)); 
-                        ++(SPU.ip); break;
+            {
+                int a = 0;
+                int b = 0;
+                StackPop (&SPU.stack, &a);
+                StackPop (&SPU.stack, &b);
+                StackPush (&SPU.stack, a * b); 
+                ++(SPU.ip); break;
+            }
 
             case DIV: 
-                        {
-                        int a = StackPop (&SPU.stack);
-                        assert (a != 0);
-                        StackPush (&SPU.stack, StackPop (&SPU.stack) / a);
-                        ++(SPU.ip); break;
-                        }
+            {
+                int a = 0;
+                int b = 0;
+                StackPop (&SPU.stack, &a);
+                StackPop (&SPU.stack, &b);
+                assert (a != 0);
+                StackPush (&SPU.stack, b / a);
+                ++(SPU.ip); break;
+            }
             
             case SQRT: 
-                        {
-                        double a = sqrt (StackPop (&SPU.stack));
-                        int b = (int) a * 100;
-                        StackPush (&SPU.stack, b);
-                        ++(SPU.ip); break;
-                        }
+            {
+                int c = 0;
+                StackPop (&SPU.stack, &c);
+                double a = sqrt (c);
+                int b = (int) a * 100;
+                StackPush (&SPU.stack, b);
+                ++(SPU.ip); break;
+            }
 
             case IN:
-                        {
-                        int a = 0;
-                        scanf ("%d", &a);
-                        StackPush (&SPU.stack, a); 
-                        ++(SPU.ip); break;
-                        }
+            {
+                int a = 0;
+                scanf ("%d", &a);
+                StackPush (&SPU.stack, a); 
+                ++(SPU.ip); break;
+            }
 
             case OUT:   
-                        printf ("out: %d\n", StackPop (&SPU.stack)); 
-                        ++(SPU.ip); break;
+            {
+                int a = 0;
+                StackPop (&SPU.stack, &a);
+                printf ("out: %d\n", a); 
+                ++(SPU.ip); break;
+            }
 
-            case DUMP:
-                        SPUDUMP (&SPU, 1);
-                        ++(SPU.ip); break;
+            case DUMP:  
+            {
+                SPUDUMP (&SPU, 1);
+                ++(SPU.ip); break;
+            }
 
             case JMP:   
             case JA:
@@ -100,61 +126,72 @@ runtime_error_t Processor (FILE* machine_code)
             case JE:
             case JNE:
                         if (code[(SPU.ip) + 1] < 0)
-                            {
+                        {
                             ErrorOutput (INVALID_LABEL, "", code[SPU.ip + 1]);
                             return INVALID_LABEL;
-                            }
+                        }
                         if (JumpOrNo (code[SPU.ip], &SPU.stack) == YES)
-                            {
+                        {
                             SPU.ip++;
                             SPU.ip = code[SPU.ip]; 
-                            }
+                        }
                         else 
                             SPU.ip += 2; 
                         break;
 
             case CALL:
-                        if (code[(SPU.ip) + 1] < 0)
-                            {
-                            ErrorOutput (INVALID_LABEL, "", code[SPU.ip + 1]);
-                            return INVALID_LABEL;
-                            }
-                        StackPush (&SPU.stack_for_func, SPU.ip + 2);
-                        SPU.ip++;
-                        SPU.ip = code[SPU.ip];
-                        break;
+            {
+                if (code[(SPU.ip) + 1] < 0)
+                {
+                    ErrorOutput (INVALID_LABEL, "", code[SPU.ip + 1]);
+                    return INVALID_LABEL;
+                }
+                StackPush (&SPU.stack_for_func, SPU.ip + 2);
+                SPU.ip++;
+                SPU.ip = code[SPU.ip];
+                break;
+            }
                         
             case RET: 
-                        SPU.ip = StackPop (&SPU.stack_for_func);
-                        break;
+            {
+                StackPop (&SPU.stack_for_func, &SPU.ip);
+                break;
+            }
             
             case DRAW:  
-                        {
-                        printf ("\n");
-                        for (int y = 0; y < 10; y++)
-                            {
-                            for (int x = 0; x < 10; x++)
-                                {
-                                printf ("[%c]", SPU.RAM[x + 10 * y]);
-                                }
-                            printf ("\n");
-                            }
-                        printf ("\n");
-                        ++(SPU.ip); break;
-                        }
+            {
+                printf ("\n");
+                for (int y = 0; y < 10; y++)
+                {
+                    for (int x = 0; x < 30; x++)
+                    {
+                        if (SPU.RAM[x + 30 * y] == '*')
+                            printf ("%s %c %s", COLOR_RED, SPU.RAM[x + 30 * y], DEFAULT_COLOR);
+                        else
+                            printf (" %c ", SPU.RAM[x + 30 * y]);
+                    }
+                    printf ("\n");
+                }
+                printf ("\n");
+                ++(SPU.ip); break;
+            }
                        
             case HLT:   
-                        code[SPU.ip] = 0; 
-                        break;
+            {
+                code[SPU.ip] = 0; 
+                break;
+            }
             default:
-                        code[SPU.ip] = 0;
-                        ErrorOutput (UNINDEFINED_COMMAND, "", code[SPU.ip]);
-                        break;
+            {
+                code[SPU.ip] = 0;
+                ErrorOutput (UNINDEFINED_COMMAND, "", code[SPU.ip]);
+                break;
             }
         }
+    }
     SPUDestroy (&SPU);
     return RUN_OK;
-    }
+}
 
 //-----------------------------------------------------------
 
@@ -260,10 +297,7 @@ int* GetArg (SPU_t* SPU) // REVIEW Нужна ли проверка для по�
 
     if (arg_type & MEMORY_BIT)
         {
-        arg_value = &SPU->RAM[*arg_value];
-        // ЗАДЕРЖКА ПЕРЕД ОБРАЩЕНИЕМ К ОПЕРАТИВНОЙ ПАМЯТИ. 
-        // СДЕЛАНО ДЛЯ ПРИВЫКАНИЯ К ТОМУ, ЧТО ОПЕРАТИВКА ДОЛГАЯ
-        Sleep(1);  
+        arg_value = &SPU->RAM[*arg_value]; 
         }
     
     return arg_value;
@@ -271,14 +305,16 @@ int* GetArg (SPU_t* SPU) // REVIEW Нужна ли проверка для по�
 
 //-----------------------------------------------------------
 
-bool JumpOrNo (int jump, Stack_t* stack)
+bool JumpOrNo (int jump, stack_t* stack)
     {
     if (jump == JMP)
         return YES;
     else 
         {
-        int a = StackPop (stack);
-        int b = StackPop (stack);
+        int a = 0;
+        StackPop (stack, &a);
+        int b = 0;
+        StackPop (stack, &b);
 
         switch (jump)
             {
@@ -315,9 +351,3 @@ bool JumpOrNo (int jump, Stack_t* stack)
     }
 
 //-----------------------------------------------------------
-
-void Sleep (int time)
-    {
-    for (int i = 0; i < time * 3*10e6; i++)
-        ;
-    }

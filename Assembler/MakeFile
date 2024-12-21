@@ -6,4 +6,4 @@ built:
 	g++ -I./Assembler/include -I./Common/include ./Assembler/src/*.cpp ./Common/src/Common.cpp -o ./Assembler/main ${FLAGS}
 
 run:
-	./Assembler/main $(FILE)
+	./Assembler/main ./Test/language.asm

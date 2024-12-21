@@ -9,12 +9,12 @@
 //-----------------------------------------------------------
 
 const int N_REGS = 5;
-const int RAM_SIZE = 100;
+const int RAM_SIZE = 300;
 
 struct SPU_t
     {
-    Stack_t stack;
-    Stack_t stack_for_func;
+    stack_t stack;
+    stack_t stack_for_func;
     int registers[N_REGS];
     int RAM[RAM_SIZE];
     int** code;
@@ -38,9 +38,7 @@ void SPUInit (SPU_t* SPU, int** code);
 void SPUDestroy (SPU_t* SPU);
 void SPUDump (SPU_t* SPU, bool stack_dump, const char* file, int line, const char* func);
 int* GetArg (SPU_t* SPU);
-bool JumpOrNo (int jump, Stack_t* stack);
-
-void Sleep (int seconds);
+bool JumpOrNo (int jump, stack_t* stack);
 
 //-----------------------------------------------------------
 

@@ -35,12 +35,12 @@ int main (int argc, const char** argv)
 
     LabelsDestroy (labels_array);
 
-    if (fclose (code_file_in) != NULL)
+    if (fclose (code_file_in) != 0)
         {
         printf ("File closing error");
         return FILE_CLOSING_ERROR;
         }
-    if (fclose (code_file_out) != NULL)
+    if (fclose (code_file_out) != 0)
         {
         printf ("File closing error");
         return FILE_CLOSING_ERROR;

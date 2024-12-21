@@ -1,35 +1,31 @@
-push 1
-pop BX
+    push 1
+    pop BX
 
-in
+    in
 
-call FACT:
+    call FACT:
 
-push BX
-mul
-out
-hlt
+    push BX
+    out
+    hlt
 
 FACT:
-dump
-pop AX
-push AX
-push AX
-push 1
+    pop AX
+    push AX
+    push 1
 
-jne NEXT:
-ret
+    jne NEXT:
+
+    ret
 
 NEXT:
-pop AX
-push AX
-push AX
-push 1
-sub
+    push AX
+    push AX
+    push 1
+    sub
 
-call FACT:
-
-push BX
-mul
-pop BX
-ret
+    call FACT:
+    push BX
+    mul
+    pop BX
+    ret

@@ -8,8 +8,6 @@
 
 //-----------------------------------------------------------
 
-// TODO tokenization (read about standart function) for comments ( ;blabla )
-
 compilation_error_t Assembler (FILE* code_file_in, FILE* code_file_out, label* labels_array, compilation_number_t compilation_number)
     {
     assert (code_file_in  != NULL);
@@ -223,7 +221,7 @@ char* SearchConst (char* str, int str_len)
     for (int i = 0; i < str_len; i++)
         {
         char symb = *(str++);
-        if (isdigit(symb))
+        if (isdigit(symb) || symb == '-')
             return --str;
         }
 
