@@ -8,8 +8,9 @@
 
 //-----------------------------------------------------------
 
-const int N_REGS = 5;
-const int RAM_SIZE = 300;
+// SPU configuration
+#define N_REGS 5U
+#define RAM_SIZE 300UL
 
 struct SPU_t
     {
@@ -21,8 +22,9 @@ struct SPU_t
     int ip;
     };
 
-const int YES = 1;
-const int NO  = 0;
+// idk what is it)
+#define YES 1
+#define NO 0
 
 enum arg_bits_t
     {
