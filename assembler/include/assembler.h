@@ -10,18 +10,18 @@ const int LABLE_NAME_LEN = 30;
 const int ARG_LEN        = 30;
 
 struct label
-    {
+{
     char label_name[LABLE_NAME_LEN];
     int label_number;
-    };
+};
 
 const int N_LABELS = 20;
 
 enum compilation_number_t
-    {
+{
     FIRST_COMPILATION  = 1,
     SECOND_COMPILATION = 2
-    };
+};
 
 const int MACHINE_CODE_SIZE = 1000;
 

@@ -3,7 +3,7 @@ FLAGS = -Wshadow -Winit-self -Wredundant-decls -Wcast-align -Wundef -Wfloat-equa
 all: built run
 
 built:
-	g++ -I./SPU/include -I./Stack/My-Allocation -I./Stack/include -I./Common/include ./SPU/src/*.cpp ./Stack/src/Stack.cpp ./Common/src/Common.cpp ./Stack/My-Allocation/*.cpp -o ./SPU/main ${FLAGS}
+	g++ -I./SPU/include -I./stack/include -I./common/include ./SPU/src/*.cpp ./stack/src/stack.c ./stack/src/allocation.c ./common/src/common.cpp -o ./SPU/main ${FLAGS}
 
 run: 
 	./SPU/main

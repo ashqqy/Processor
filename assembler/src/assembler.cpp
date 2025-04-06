@@ -3,13 +3,13 @@
 #include <assert.h>
 #include <ctype.h>
 
-#include "Assembler.h"
-#include "Common.h"
+#include "assembler.h"
+#include "common.h"
 
 //-----------------------------------------------------------
 
 compilation_error_t Assembler (FILE* code_file_in, FILE* code_file_out, label* labels_array, compilation_number_t compilation_number)
-    {
+{
     assert (code_file_in  != NULL);
     assert (code_file_out != NULL);
     assert (compilation_number == FIRST_COMPILATION || compilation_number == SECOND_COMPILATION);
@@ -22,7 +22,7 @@ compilation_error_t Assembler (FILE* code_file_in, FILE* code_file_out, label* l
 
     int n_readed = 0;
     while (n_readed != EOF)
-        {
+    {
         char text_cmd[30] = {};
         n_readed = fscanf (code_file_in, "%s", text_cmd);
 
@@ -30,10 +30,10 @@ compilation_error_t Assembler (FILE* code_file_in, FILE* code_file_out, label* l
         FromTextToMachineCode (text_cmd, &machine_cmd);
 
         switch (machine_cmd)
-            {
+        {
             case PUSH: 
             case POP:
-                {
+            {
                 machine_code[ip++] = machine_cmd;
 
                 char arg_unformate[ARG_LEN] = {};
@@ -46,7 +46,7 @@ compilation_error_t Assembler (FILE* code_file_in, FILE* code_file_out, label* l
                     return ppc_err;
     
                 break;
-                }
+            }
 
             case JMP:
             case JA:
@@ -56,33 +56,33 @@ compilation_error_t Assembler (FILE* code_file_in, FILE* code_file_out, label* l
             case JE:
             case JNE:
             case CALL:
-                {
+            {
                 machine_code[ip++] = machine_cmd;
                 fscanf (code_file_in, "%s", text_cmd);
                 compilation_error_t jc_err = JumpCase (text_cmd, machine_code, &ip, labels_array, compilation_number);
                 if (jc_err != COMPILATION_OK)
                     return jc_err;
                 break;
-                }
+            }
 
             case LABEL:
-                {
+            {
                 for (int i = 0; i < N_LABELS; i++)
-                    {
+                {
                     if (labels_array[i].label_number == -1)
-                        {
+                    {
                         strcpy (labels_array[i].label_name, text_cmd);
                         labels_array[i].label_number = ip;
                         break;
-                        }
+                    }
                     if (i == N_LABELS - 1)
-                        {
+                    {
                         ErrorOutput (TOO_MANY_LABELS, "There is no place for new labels");
                         return TOO_MANY_LABELS;
-                        }
                     }
-                break;
                 }
+                break;
+            }
 
             case ADD: 
             case SUB: 
@@ -100,27 +100,27 @@ compilation_error_t Assembler (FILE* code_file_in, FILE* code_file_out, label* l
 
             case ERRCMD: 
                 if (n_readed != -1) 
-                    {
+                {
                     ErrorOutput (SYNTAX_ERROR, text_cmd);
                     return SYNTAX_ERROR;
-                    }
+                }
                 break;
 
             default:
                 ErrorOutput (SYNTAX_ERROR, text_cmd);
                 return SYNTAX_ERROR;
-            }
         }
+    }
         if (compilation_number == SECOND_COMPILATION)
             fwrite (machine_code, sizeof(machine_code[0]), sizeof (machine_code) / sizeof (machine_code[0]), code_file_out);
     
     return COMPILATION_OK;
-    }
+}
 
 //-----------------------------------------------------------
 
 void FromTextToMachineCode (char* text_cmd, spu_command_t* machine_cmd)
-    {
+{
     if      (strchr (text_cmd, ':')     != 0)  *machine_cmd = LABEL;
     else if (strcmp (text_cmd, "push")  == 0)  *machine_cmd = PUSH;
     else if (strcmp (text_cmd, "pop")   == 0)  *machine_cmd = POP;
@@ -143,47 +143,46 @@ void FromTextToMachineCode (char* text_cmd, spu_command_t* machine_cmd)
     else if (strcmp (text_cmd, "call")  == 0)  *machine_cmd = CALL;
     else if (strcmp (text_cmd, "ret")   == 0)  *machine_cmd = RET;
     else if (strcmp (text_cmd, "hlt")   == 0)  *machine_cmd = HLT;
-    }
+}
 
 //-----------------------------------------------------------
 
-
 void LabelsInit (label* labels_array)
-    {
+{
     assert (labels_array != NULL);
 
     for (int i = 0; i < N_LABELS; i++)
         labels_array[i].label_number = -1;
-    }
+}
 
 void LabelsDestroy (label* labels_array)
-    {
+{
     assert (labels_array != NULL);
 
     for (int i = 0; i < N_LABELS; i++)
         labels_array[i].label_number = -1;
-    }
+}
 
 void LabelsDump (label* labels_array)
-    {
+{
     assert (labels_array != NULL);
 
     printf ("labels[%p]\n", labels_array);
     printf ("    {\n");
     for (int i = 0; i < N_LABELS; i++)
-        {
+    {
         if (labels_array[i].label_number != -1)
             printf ("    label %s %d \n", labels_array[i].label_name, labels_array[i].label_number);
         else
             printf ("    Empty label\n");
-        }
-    printf ("    }\n");
     }
+    printf ("    }\n");
+}
 
 //-----------------------------------------------------------
 
 compilation_error_t FillArgType (char* arg, int* arg_type)
-    {
+{
     assert (arg      != NULL);
     assert (arg_type != NULL);
 
@@ -192,15 +191,15 @@ compilation_error_t FillArgType (char* arg, int* arg_type)
     char* reg_ptr      = strchr (arg, 'X');
 
     if (open_bracket != NULL)
-        {
+    {
         char* close_bracket = strchr (arg, ']');
         if (close_bracket == NULL)
-            {
+        {
             ErrorOutput (SYNTAX_ERROR, "expected: ']'");
             return SYNTAX_ERROR;
-            }
-        *arg_type |= 4;
         }
+        *arg_type |= 4;
+    }
    
     if (plus_ptr != NULL)
         *arg_type |= 3;
@@ -210,26 +209,26 @@ compilation_error_t FillArgType (char* arg, int* arg_type)
         *arg_type |= 2;
 
     return COMPILATION_OK;
-    }
+}
 
 //-----------------------------------------------------------
 
 char* SearchConst (char* str, int str_len)
-    {
+{
     assert (str != NULL);
 
     for (int i = 0; i < str_len; i++)
-        {
+    {
         char symb = *(str++);
         if (isdigit(symb) || symb == '-')
             return --str;
-        }
-
-    return NULL;
     }
 
+    return NULL;
+}
+
 int SearchReg (char* str)
-    {
+{
     assert (str != NULL);
 
          if (strstr (str, "AX") != NULL) return AX;
@@ -238,12 +237,12 @@ int SearchReg (char* str)
     else if (strstr (str, "DX") != NULL) return DX;
 
     return NONEXISTENT_REGISTER;
-    }
+}
 
 //-----------------------------------------------------------
 
 void FormateArg (char push_arg_unformated[], char push_arg[])
-    {
+{
     assert (push_arg_unformated != NULL);
 
     char symb = *push_arg_unformated;
@@ -251,28 +250,29 @@ void FormateArg (char push_arg_unformated[], char push_arg[])
     int format_ptr = 0;
 
     while (symb == ' ')
-        {
+    {
         push_arg_unformated += 1;
         symb = *push_arg_unformated;
-        }
+    }
 
     for (int i = 0; i < ARG_LEN; i++)
-        {
+    {
         if (symb != '\r')
-            {
+        {
             push_arg_formated[format_ptr] = symb;
             format_ptr += 1;
-            }
+        }
+
         push_arg_unformated += 1;
         symb = *push_arg_unformated;
-        }
-    memcpy (push_arg, push_arg_formated, ARG_LEN);
     }
+    memcpy (push_arg, push_arg_formated, ARG_LEN);
+}
 
 //-----------------------------------------------------------
 
 compilation_error_t PushPopCase (int* machine_code, int* ip, char* arg)
-    {
+{
     assert (machine_code != NULL);
     assert (ip           != NULL);
     assert (arg          != NULL);
@@ -282,68 +282,71 @@ compilation_error_t PushPopCase (int* machine_code, int* ip, char* arg)
     compilation_error_t fat_err = FillArgType (arg, &arg_type);
     if (fat_err != COMPILATION_OK)
         return fat_err;
+
     machine_code[(*ip)++] = arg_type;
 
     if (arg_type & 1)
-        {
+    {
         int reg = SearchReg (arg);
         if (reg == NONEXISTENT_REGISTER)
-            {
+        {
             ErrorOutput (NONEXISTENT_REGISTER, arg);
             return NONEXISTENT_REGISTER;
-            }
-        machine_code[(*ip)++] = reg;
         }
+
+        machine_code[(*ip)++] = reg;
+    }
     
     if (arg_type & 2)
-        {
+    {
         char* intptr = SearchConst (arg, ARG_LEN);
         if (intptr != NULL)
-            {
+        {
             sscanf (intptr, "%d", &machine_code[(*ip)++]);
-            }
+        }
+
         else
-            {
+        {
             ErrorOutput (MISSING_CONSTANT_ARGUMENT, arg);
             return MISSING_CONSTANT_ARGUMENT;
-            }
         }
+    }
     
     return COMPILATION_OK;
-    }
+}
 
 //-----------------------------------------------------------
 
 compilation_error_t JumpCase (char* text_cmd, int* machine_code, int* ip, label* labels_array, int compilation_number)
-    {
+{
     if (strchr (text_cmd, ':') == NULL)
-        {
+    {
         if (sscanf (text_cmd, "%d", &machine_code[(*ip)++]) == 0)
-            {
+        {
             ErrorOutput (SYNTAX_ERROR, text_cmd);
             return SYNTAX_ERROR;
-            }
-        } 
+        }
+    } 
     else
         for (int i = 0; i < N_LABELS; i++)
-            {  
+        {  
             if (strcmp (labels_array[i].label_name, text_cmd) == 0)
-                {
+            {
                 machine_code[(*ip)++] = labels_array[i].label_number;
                 break;
-                }
+            }
             if (i == N_LABELS - 1)
-                {
+            {
                 if (compilation_number == FIRST_COMPILATION)
                     machine_code[(*ip)++] = -1;
                 if (compilation_number == SECOND_COMPILATION)
-                    {
+                {
                     ErrorOutput (SYNTAX_ERROR, text_cmd);
                     return SYNTAX_ERROR;
-                    }
                 }
             }
+        }
     return COMPILATION_OK;
-    }
+}
 
 //-----------------------------------------------------------

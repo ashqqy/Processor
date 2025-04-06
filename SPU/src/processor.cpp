@@ -3,9 +3,9 @@
 #include <assert.h>
 #include <math.h>
 
-#include "Processor.h"
-#include "Stack.h"
-#include "Common.h"
+#include "processor.h"
+#include "stack.h"
+#include "common.h"
 
 //-----------------------------------------------------------
 
@@ -196,26 +196,26 @@ runtime_error_t Processor (FILE* machine_code)
 //-----------------------------------------------------------
 
 void SPUInit (SPU_t* SPU, int** code)
-    {
+{
     assert (SPU   != NULL);
     assert (code  != NULL);
     assert (*code != NULL);
 
     SPU->stack = {};
-    StackInit (&SPU->stack);
+    StackInit (&SPU->stack, 10);
 
     SPU->stack_for_func = {};
-    StackInit (&SPU->stack_for_func);
+    StackInit (&SPU->stack_for_func, 10);
 
     SPU->ip = 0;
     SPU->code = code;
 
     memset (&SPU->registers, 0, N_REGS * sizeof (int));
     memset (&SPU->RAM, 0, RAM_SIZE * sizeof (int));
-    }
+}
 
 void SPUDestroy (SPU_t* SPU)
-    {
+{
     assert (SPU != NULL);
 
     StackDestroy (&SPU->stack);
@@ -228,12 +228,12 @@ void SPUDestroy (SPU_t* SPU)
 
     memset (&SPU->registers, 0, N_REGS * sizeof (int));
     memset (&SPU->RAM, 0, RAM_SIZE * sizeof (int));
-    }
+}
 
 //-----------------------------------------------------------
 
 void SPUDump (SPU_t* SPU, bool stack_dump, const char* file, int line, const char* func)
-    {
+{
     /// Если файл для дампа есть или его можно создать, то вывод туда, иначе в консоль
     FILE* dump_file = fopen ("./SPU/DumpFile.txt", "a");
     if (dump_file == NULL)
@@ -252,32 +252,32 @@ void SPUDump (SPU_t* SPU, bool stack_dump, const char* file, int line, const cha
     fprintf (dump_file, "    registers[0x%p]\n", SPU->registers);
     fprintf (dump_file, "        {\n");
     for (int i = 0; i < N_REGS; i++)
-        {
+    {
         switch (i)
-            {
+        {
             case ZR: fprintf (dump_file, "        ZR = [%d]\n", SPU->registers[i]); break;
             case AX: fprintf (dump_file, "        AX = [%d]\n", SPU->registers[i]); break;
             case BX: fprintf (dump_file, "        BX = [%d]\n", SPU->registers[i]); break;
             case CX: fprintf (dump_file, "        CX = [%d]\n", SPU->registers[i]); break;
             case DX: fprintf (dump_file, "        DX = [%d]\n", SPU->registers[i]); break;
             default: fprintf (dump_file, "        reg(?) = [%d]\n", SPU->registers[i]); break;
-            }
         }
+    }
     fprintf (dump_file, "        }\n");
     fprintf (dump_file, "    }\n");
 
     if (stack_dump == 1)
-        {  
+    {  
         assert (&(SPU->stack) != NULL);
         StackDump (&(SPU->stack), dump_file, __FILE__, __LINE__, __func__);
         // StackDump (&(SPU->stack_for_func), dump_file, __FILE__, __LINE__, __func__); // стек для команды call
-        }
     }
+}
 
 //-----------------------------------------------------------
 
 int* GetArg (SPU_t* SPU) // REVIEW Нужна ли проверка для попа
-    {
+{
     // int operation = (*SPU->code)[(SPU->ip)];
     int arg_type  = (*SPU->code)[++(SPU->ip)];
     int* arg_value = NULL;
@@ -286,68 +286,86 @@ int* GetArg (SPU_t* SPU) // REVIEW Нужна ли проверка для по�
         arg_value = &(SPU->registers[(*SPU->code)[++(SPU->ip)]]);
 
     if (arg_type & CONSTANT_BIT)
-        {
+    {
         if (arg_value != NULL)
             SPU->registers[ZR] = *arg_value + (*SPU->code)[++(SPU->ip)];
         else
             SPU->registers[ZR] = (*SPU->code)[++(SPU->ip)];
 
         arg_value = &SPU->registers[ZR];
-        }
+    }
 
     if (arg_type & MEMORY_BIT)
-        {
+    {
         arg_value = &SPU->RAM[*arg_value]; 
-        }
+    }
     
     return arg_value;
-    }
+}
 
 //-----------------------------------------------------------
 
 bool JumpOrNo (int jump, stack_t* stack)
-    {
+{
     if (jump == JMP)
         return YES;
     else 
-        {
+    {
         int a = 0;
         StackPop (stack, &a);
         int b = 0;
         StackPop (stack, &b);
 
         switch (jump)
-            {
+        {
             case JA:
+            {
                 if (b > a)
                     return YES;
                 break;
+            }
+
             case JAE:
+            {
                 if (b >= a)
                     return YES;
                 break;
+            }
+
             case JB:
+            {
                 if (b < a)
                     return YES;
                 break;
+            }
+
             case JBE:
+            {
                 if (b <= a)
                     return YES;
                 break;
+            }
+
             case JE:
+            {
                 if (b == a)
                     return YES;
                 break;
+            }
+
             case JNE: 
+            {
                 if (b != a)
                     return YES;
                 break;
+            }
 
             default: 
                 return NO;
-            }
         }
-    return NO;
     }
+
+    return NO;
+}
 
 //-----------------------------------------------------------

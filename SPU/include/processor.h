@@ -3,8 +3,8 @@
 
 #include <stdio.h>
 
-#include "Stack.h"
-#include "Common.h"
+#include "stack.h"
+#include "common.h"
 
 //-----------------------------------------------------------
 
@@ -12,24 +12,24 @@ const int N_REGS = 5;
 const int RAM_SIZE = 300;
 
 struct SPU_t
-    {
+{
     stack_t stack;
     stack_t stack_for_func;
     int registers[N_REGS];
     int RAM[RAM_SIZE];
     int** code;
     int ip;
-    };
+};
 
 const int YES = 1;
 const int NO  = 0;
 
 enum arg_bits_t
-    {
+{
     REGISTER_BIT = 1,
     CONSTANT_BIT = 2,
     MEMORY_BIT   = 4
-    };
+};
 
 //-----------------------------------------------------------
 

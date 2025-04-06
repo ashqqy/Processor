@@ -4,7 +4,7 @@
 //----------------------------------------------------------------
 
 enum spu_command_t
-    {
+{
     ERRCMD = 0,
     PUSH   = 1,
     POP    = 2,
@@ -28,38 +28,38 @@ enum spu_command_t
     LABEL  = 20,
     DRAW   = 21,
     HLT    = -1
-    };
+};
 
 enum reg_t
-    {
+{
     ZR = 0,
     AX = 1,
     BX = 2,
     CX = 3,
     DX = 4
-    };
+};
 
 enum file_error_t
-    {
+{
     FILE_OPENING_ERROR = 2000,
     FILE_CLOSING_ERROR = 2001
-    };
+};
 
 enum compilation_error_t
-    {
+{
     COMPILATION_OK            = 1000,
     SYNTAX_ERROR              = 1001,
     NONEXISTENT_REGISTER      = 1002,
     MISSING_CONSTANT_ARGUMENT = 1003,
     TOO_MANY_LABELS           = 1004
-    };
+};
 
 enum runtime_error_t
-    {
+{
     RUN_OK              = 1500,
     INVALID_LABEL       = 1501,
     UNINDEFINED_COMMAND = 1502
-    };
+};
 
 //----------------------------------------------------------------
 
