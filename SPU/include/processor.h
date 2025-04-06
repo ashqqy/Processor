@@ -2,16 +2,17 @@
 #define PROCESSOR
 
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "stack.h"
 #include "common.h"
 
 //-----------------------------------------------------------
 
-const int N_REGS = 5;
-const int RAM_SIZE = 300;
+#define N_REGS 5
+#define RAM_SIZE 300
 
-struct SPU_t
+typedef struct 
 {
     stack_t stack;
     stack_t stack_for_func;
@@ -19,17 +20,17 @@ struct SPU_t
     int RAM[RAM_SIZE];
     int** code;
     int ip;
-};
+} SPU_t;
 
-const int YES = 1;
-const int NO  = 0;
+static const int YES = 1;
+static const int NO  = 0;
 
-enum arg_bits_t
+typedef enum 
 {
     REGISTER_BIT = 1,
     CONSTANT_BIT = 2,
     MEMORY_BIT   = 4
-};
+} arg_bits_t;
 
 //-----------------------------------------------------------
 

@@ -1,6 +1,7 @@
+#include <assert.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 #include <math.h>
 
 #include "processor.h"
@@ -20,7 +21,7 @@ runtime_error_t Processor (FILE* machine_code)
     size_t size_machine_code = FileSizeFinder (machine_code);
     size_machine_code /= sizeof (int);
 
-    int* code = (int*) calloc (size_machine_code + 1, sizeof (int));
+    int* code = (int*) calloc (size_machine_code + 2, sizeof (int));
     code[size_machine_code + 1] = 0;
     fread (code, sizeof (int), size_machine_code, machine_code);
 
@@ -201,10 +202,8 @@ void SPUInit (SPU_t* SPU, int** code)
     assert (code  != NULL);
     assert (*code != NULL);
 
-    SPU->stack = {};
     StackInit (&SPU->stack, 10);
 
-    SPU->stack_for_func = {};
     StackInit (&SPU->stack_for_func, 10);
 
     SPU->ip = 0;

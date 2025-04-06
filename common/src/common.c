@@ -35,7 +35,7 @@ size_t TextCreator (FILE* file_input, char** text)
 size_t FileSizeFinder (FILE* file_input)
 {
     fseek (file_input, 0L, SEEK_END); //лучше fstat
-    size_t size_file_input = ftell(file_input);
+    size_t size_file_input = (size_t) ftell (file_input);
     fseek(file_input, 0L, SEEK_SET);
 
     return size_file_input;

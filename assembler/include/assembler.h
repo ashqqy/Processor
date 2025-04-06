@@ -6,24 +6,25 @@
 
 //-----------------------------------------------------------
 
-const int LABLE_NAME_LEN = 30;
-const int ARG_LEN        = 30;
+static const int ARG_LEN        = 30;
 
-struct label
+#define LABLE_NAME_LEN 30
+typedef struct 
 {
     char label_name[LABLE_NAME_LEN];
     int label_number;
-};
+} label;
+#undef LABLE_NAME_LEN
 
-const int N_LABELS = 20;
+static const int N_LABELS = 20;
 
-enum compilation_number_t
+typedef enum
 {
     FIRST_COMPILATION  = 1,
     SECOND_COMPILATION = 2
-};
+} compilation_number_t;
 
-const int MACHINE_CODE_SIZE = 1000;
+static const int MACHINE_CODE_SIZE = 1000;
 
 //-----------------------------------------------------------
 

@@ -77,7 +77,7 @@ compilation_error_t Assembler (FILE* code_file_in, FILE* code_file_out, label* l
                     }
                     if (i == N_LABELS - 1)
                     {
-                        ErrorOutput (TOO_MANY_LABELS, "There is no place for new labels");
+                        ErrorOutput (TOO_MANY_LABELS, "There is no place for new labels", 0);
                         return TOO_MANY_LABELS;
                     }
                 }
@@ -101,13 +101,13 @@ compilation_error_t Assembler (FILE* code_file_in, FILE* code_file_out, label* l
             case ERRCMD: 
                 if (n_readed != -1) 
                 {
-                    ErrorOutput (SYNTAX_ERROR, text_cmd);
+                    ErrorOutput (SYNTAX_ERROR, text_cmd, 0);
                     return SYNTAX_ERROR;
                 }
                 break;
 
             default:
-                ErrorOutput (SYNTAX_ERROR, text_cmd);
+                ErrorOutput (SYNTAX_ERROR, text_cmd, 0);
                 return SYNTAX_ERROR;
         }
     }
@@ -195,7 +195,7 @@ compilation_error_t FillArgType (char* arg, int* arg_type)
         char* close_bracket = strchr (arg, ']');
         if (close_bracket == NULL)
         {
-            ErrorOutput (SYNTAX_ERROR, "expected: ']'");
+            ErrorOutput (SYNTAX_ERROR, "expected: ']'", 0);
             return SYNTAX_ERROR;
         }
         *arg_type |= 4;
@@ -244,29 +244,25 @@ int SearchReg (char* str)
 void FormateArg (char push_arg_unformated[], char push_arg[])
 {
     assert (push_arg_unformated != NULL);
+    assert (push_arg != NULL);
 
-    char symb = *push_arg_unformated;
-    char push_arg_formated[ARG_LEN] = {};
-    int format_ptr = 0;
+    size_t read_pos = 0;
+    size_t write_pos = 0;
 
-    while (symb == ' ')
+    while (isspace(push_arg_unformated[read_pos]))
     {
-        push_arg_unformated += 1;
-        symb = *push_arg_unformated;
+        read_pos++;
     }
 
-    for (int i = 0; i < ARG_LEN; i++)
+    while (push_arg_unformated[read_pos] != '\0' && write_pos < ARG_LEN - 1)
     {
-        if (symb != '\r')
+        if (push_arg_unformated[read_pos] != '\n')
         {
-            push_arg_formated[format_ptr] = symb;
-            format_ptr += 1;
+            push_arg[write_pos] = push_arg_unformated[read_pos];
+            write_pos++;
         }
-
-        push_arg_unformated += 1;
-        symb = *push_arg_unformated;
+        read_pos++;
     }
-    memcpy (push_arg, push_arg_formated, ARG_LEN);
 }
 
 //-----------------------------------------------------------
@@ -290,7 +286,7 @@ compilation_error_t PushPopCase (int* machine_code, int* ip, char* arg)
         int reg = SearchReg (arg);
         if (reg == NONEXISTENT_REGISTER)
         {
-            ErrorOutput (NONEXISTENT_REGISTER, arg);
+            ErrorOutput (NONEXISTENT_REGISTER, arg, 0);
             return NONEXISTENT_REGISTER;
         }
 
@@ -307,7 +303,7 @@ compilation_error_t PushPopCase (int* machine_code, int* ip, char* arg)
 
         else
         {
-            ErrorOutput (MISSING_CONSTANT_ARGUMENT, arg);
+            ErrorOutput (MISSING_CONSTANT_ARGUMENT, arg, 0);
             return MISSING_CONSTANT_ARGUMENT;
         }
     }
@@ -323,7 +319,7 @@ compilation_error_t JumpCase (char* text_cmd, int* machine_code, int* ip, label*
     {
         if (sscanf (text_cmd, "%d", &machine_code[(*ip)++]) == 0)
         {
-            ErrorOutput (SYNTAX_ERROR, text_cmd);
+            ErrorOutput (SYNTAX_ERROR, text_cmd, 0);
             return SYNTAX_ERROR;
         }
     } 
@@ -341,7 +337,7 @@ compilation_error_t JumpCase (char* text_cmd, int* machine_code, int* ip, label*
                     machine_code[(*ip)++] = -1;
                 if (compilation_number == SECOND_COMPILATION)
                 {
-                    ErrorOutput (SYNTAX_ERROR, text_cmd);
+                    ErrorOutput (SYNTAX_ERROR, text_cmd, 0);
                     return SYNTAX_ERROR;
                 }
             }
